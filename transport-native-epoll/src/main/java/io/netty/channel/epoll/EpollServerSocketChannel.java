@@ -35,7 +35,6 @@ public final class EpollServerSocketChannel extends AbstractEpollChannel impleme
     private volatile InetSocketAddress local;
 
     public EpollServerSocketChannel() {
-        super(Native.EPOLLACCEPT);
         config = new EpollServerSocketChannelConfig(this);
     }
 
@@ -83,6 +82,11 @@ public final class EpollServerSocketChannel extends AbstractEpollChannel impleme
         public void connect(SocketAddress socketAddress, SocketAddress socketAddress2, ChannelPromise channelPromise) {
             // Connect not supported by ServerChannel implementations
             channelPromise.setFailure(new UnsupportedOperationException());
+        }
+
+        @Override
+        void epollRdHupReady() {
+            // NOOP
         }
 
         @Override

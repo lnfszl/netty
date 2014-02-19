@@ -62,12 +62,11 @@ public final class EpollSocketChannel extends AbstractEpollChannel implements So
     private volatile boolean outputShutdown;
 
     EpollSocketChannel(Channel parent, int fd) {
-        super(parent, fd, Native.EPOLLIN, true);
+        super(parent, fd, true);
         config = new EpollSocketChannelConfig(this);
     }
 
     public EpollSocketChannel() {
-        super(Native.EPOLLIN);
         config = new EpollSocketChannelConfig(this);
     }
 
@@ -101,7 +100,7 @@ public final class EpollSocketChannel extends AbstractEpollChannel implements So
 
     private void clearEpollOut() {
         if ((flags & Native.EPOLLOUT) != 0) {
-            flags = ~Native.EPOLLOUT;
+            flags &= ~Native.EPOLLOUT;
             ((EpollEventLoop) eventLoop()).modify(this);
         }
     }
@@ -528,7 +527,11 @@ public final class EpollSocketChannel extends AbstractEpollChannel implements So
 
         @Override
         void epollRdHupReady() {
-            closeOnRead(pipeline());
+            if (isActive()) {
+                epollInReady();
+            } else {
+                closeOnRead(pipeline());
+            }
         }
 
         @Override

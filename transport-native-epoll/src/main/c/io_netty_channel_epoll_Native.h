@@ -16,10 +16,11 @@
 #include <jni.h>
 
 
-#define EPOLL_READ 0x01
-#define EPOLL_WRITE 0x02
-#define EPOLL_ACCEPT 0x04
-#define EPOLL_RDHUP 0x08
+#define EPOLL_READ  1 << 0
+#define EPOLL_WRITE 1 << 1
+#define EPOLL_RDHUP 1 << 2
+#define EPOLL_ERR 1 << 3
+#define EPOLL_HUP 1 << 4
 
 jint Java_io_netty_channel_epoll_Native_eventFd(JNIEnv * env, jclass clazz);
 void Java_io_netty_channel_epoll_Native_eventFdWrite(JNIEnv * env, jclass clazz, jint fd, jlong value);

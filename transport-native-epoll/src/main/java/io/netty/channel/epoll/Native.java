@@ -44,10 +44,11 @@ final class Native {
     }
 
     // EventLoop operations and constants
-    public static final int EPOLLIN = 0x01;
-    public static final int EPOLLOUT = 0x02;
-    public static final int EPOLLACCEPT = 0x04;
-    public static final int EPOLLRDHUP = 0x08;
+    public static final int EPOLLIN =  1 << 0;
+    public static final int EPOLLOUT = 1 << 1;
+    public static final int EPOLLRDHUP = 1 << 2;
+    public static final int EPOLLERR = 1 << 3;
+    public static final int EPOLLHUP = 1 << 4;
 
     public static native int eventFd();
     public static native void eventFdWrite(int fd, long value);

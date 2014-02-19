@@ -26,21 +26,19 @@ import java.net.InetSocketAddress;
 
 abstract class AbstractEpollChannel extends AbstractChannel {
     private static final ChannelMetadata DATA = new ChannelMetadata(false);
-    private final int readFlag;
     protected int flags;
     protected volatile boolean active;
     volatile int fd;
     int id;
 
-    AbstractEpollChannel(int flag) {
-        this(null, socketFd(), flag, false);
+    AbstractEpollChannel() {
+        this(null, socketFd(), false);
     }
 
-    AbstractEpollChannel(Channel parent, int fd, int flag, boolean active) {
+    AbstractEpollChannel(Channel parent, int fd, boolean active) {
         super(parent);
         this.fd = fd;
-        readFlag = flag;
-        flags |= flag;
+        flags |= Native.EPOLLIN;
         this.active = active;
     }
 
@@ -65,6 +63,7 @@ abstract class AbstractEpollChannel extends AbstractChannel {
     @Override
     protected void doClose() throws Exception {
         active = false;
+        ((EpollEventLoop) eventLoop()).remove(this);
         int fd = this.fd;
         this.fd = -1;
         Native.close(fd);
@@ -102,15 +101,15 @@ abstract class AbstractEpollChannel extends AbstractChannel {
 
     @Override
     protected void doBeginRead() throws Exception {
-        if ((flags & readFlag) == 0) {
-            flags |= readFlag;
+        if ((flags & Native.EPOLLIN) == 0) {
+            flags |= Native.EPOLLIN;
             ((EpollEventLoop) eventLoop()).modify(this);
         }
     }
 
     protected final void clearEpollIn() {
-        if ((flags & readFlag) != 0) {
-            flags = ~readFlag;
+        if ((flags & Native.EPOLLIN) != 0) {
+            flags &= ~Native.EPOLLIN;
             ((EpollEventLoop) eventLoop()).modify(this);
         }
     }
@@ -134,9 +133,7 @@ abstract class AbstractEpollChannel extends AbstractChannel {
         /**
          * Called once EPOLLRDHUP event is ready to be processed
          */
-        void epollRdHupReady() {
-            // NOOP
-        }
+        abstract void epollRdHupReady();
 
         @Override
         protected void flush0() {

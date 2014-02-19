@@ -79,16 +79,13 @@ char *exceptionMessage(char *msg, int error) {
 }
 
 jint epollCtl(JNIEnv * env, jint efd, int op, jint fd, jint flags, jint id) {
-    uint32_t events = EPOLLET;
+    uint32_t events = 0;//EPOLLET;
 
-    if (flags & EPOLL_ACCEPT) {
-        events |= EPOLLIN;
-    }
     if (flags & EPOLL_READ) {
-        events |= EPOLLIN | EPOLLRDHUP;
+        events |= EPOLLIN | EPOLLRDHUP | EPOLLERR;
     }
     if (flags & EPOLL_WRITE) {
-        events |= EPOLLOUT;
+        events |= EPOLLOUT | EPOLLERR;
     }
 
     struct epoll_event ev = {
@@ -420,6 +417,12 @@ JNIEXPORT jint JNICALL Java_io_netty_channel_epoll_Native_epollWait(JNIEnv * env
         }
         if (ev[i].events & EPOLLRDHUP) {
             elements[i] |= EPOLL_RDHUP;
+        }
+        if (ev[i].events & EPOLLERR) {
+            elements[i] |= EPOLL_ERR;
+        }
+        if (ev[i].events & EPOLLHUP) {
+            elements[i] |= EPOLL_HUP;
         }
         if (ev[i].events & EPOLLOUT) {
             elements[i] |= EPOLL_WRITE;
